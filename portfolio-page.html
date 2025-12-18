@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ankur Vats - Portfolio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0e27;
+            color: #00ff41;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* Scanline effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 255, 65, 0.03) 0px,
+                transparent 1px,
+                transparent 2px,
+                rgba(0, 255, 65, 0.03) 3px
+            );
+            pointer-events: none;
+            z-index: 9999;
+        }
+        
+        /* CRT flicker */
+        @keyframes flicker {
+            0% { opacity: 0.98; }
+            50% { opacity: 1; }
+            100% { opacity: 0.98; }
+        }
+        
+        body {
+            animation: flicker 0.15s infinite;
+        }
+        
+        /* Header Styles */
+        header {
+            background: #000;
+            border-bottom: 3px solid #00ff41;
+            padding: 60px 20px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.5);
+        }
+        
+        header::after {
+            content: '█';
+            position: absolute;
+            right: 50px;
+            top: 50%;
+            animation: blink 1s infinite;
+            font-size: 30px;
+        }
+        
+        @keyframes blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
+        }
+        
+        header h1 {
+            font-size: 48px;
+            font-weight: bold;
+            color: #00ff41;
+            text-shadow: 0 0 10px #00ff41, 0 0 20px #00ff41;
+            letter-spacing: 5px;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        header h1::before {
+            content: '> ';
+            color: #ff006e;
+        }
+        
+        header p {
+            font-size: 18px;
+            color: #00d9ff;
+            letter-spacing: 2px;
+        }
+        
+        header p::before {
+            content: '[ ';
+            color: #ffbe0b;
+        }
+        
+        header p::after {
+            content: ' ]';
+            color: #ffbe0b;
+        }
+        
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        /* Section Styles */
+        section {
+            margin-bottom: 60px;
+            border: 2px solid #00ff41;
+            padding: 30px;
+            background: rgba(0, 255, 65, 0.02);
+            position: relative;
+        }
+        
+        section::before {
+            content: '///';
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: #0a0e27;
+            padding: 0 10px;
+            color: #ff006e;
+            font-weight: bold;
+        }
+        
+        section h2 {
+            font-size: 32px;
+            color: #ff006e;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px #ff006e;
+        }
+        
+        section h2::before {
+            content: '>> ';
+            color: #00d9ff;
+        }
+        
+        /* About Me Section */
+        #about {
+            border-color: #ff006e;
+        }
+        
+        #about p {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #00d9ff;
+            text-align: left;
+            font-family: 'Courier New', monospace;
+        }
+        
+        #about p::first-letter {
+            font-size: 32px;
+            color: #ffbe0b;
+            font-weight: bold;
+        }
+        
+        /* Skills Section */
+        #skills {
+            border-color: #00d9ff;
+        }
+        
+        #skills ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        #skills li {
+            background: #000;
+            padding: 15px 20px;
+            border: 2px solid #00ff41;
+            color: #00ff41;
+            font-size: 16px;
+            position: relative;
+            transition: all 0.3s ease;
+            clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 0 100%);
+        }
+        
+        #skills li::before {
+            content: '[✓]';
+            margin-right: 10px;
+            color: #ff006e;
+        }
+        
+        #skills li::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 15px;
+            height: 15px;
+            background: #00ff41;
+            clip-path: polygon(0 0, 100% 0, 100% 100%);
+        }
+        
+        #skills li:hover {
+            background: #00ff41;
+            color: #000;
+            box-shadow: 0 0 20px #00ff41;
+            transform: translateX(5px);
+        }
+        
+        #skills li:hover::before {
+            color: #000;
+        }
+        
+        #skills li:hover::after {
+            background: #000;
+        }
+        
+        /* Projects Section */
+        #projects {
+            border-color: #ffbe0b;
+        }
+        
+        .project {
+            background: #000;
+            border: 2px solid #00d9ff;
+            padding: 25px;
+            margin-bottom: 20px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .project::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, #ff006e, #00d9ff, #00ff41);
+        }
+        
+        .project h3 {
+            color: #ffbe0b;
+            font-size: 24px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .project h3::before {
+            content: '█ ';
+            color: #ff006e;
+        }
+        
+        .project p {
+            color: #00d9ff;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+        
+        .project:hover {
+            border-color: #00ff41;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.3);
+            transform: translateX(10px);
+        }
+        
+        /* Footer */
+        footer {
+            background: #000;
+            border-top: 3px solid #ff006e;
+            padding: 40px 20px;
+            text-align: center;
+            margin-top: 40px;
+            box-shadow: 0 0 20px rgba(255, 0, 110, 0.5);
+        }
+        
+        footer h3 {
+            color: #00ff41;
+            font-size: 28px;
+            margin-bottom: 20px;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px #00ff41;
+        }
+        
+        footer h3::before {
+            content: '<<< ';
+            color: #ff006e;
+        }
+        
+        footer h3::after {
+            content: ' >>>';
+            color: #ff006e;
+        }
+        
+        footer p {
+            color: #00d9ff;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        footer p::before {
+            content: '> ';
+            color: #ffbe0b;
+        }
+        
+        footer a {
+            color: #00ff41;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            text-shadow: 0 0 5px #00ff41;
+        }
+        
+        footer a:hover {
+            color: #ff006e;
+            text-shadow: 0 0 10px #ff006e;
+        }
+        
+        /* Terminal effect for loading */
+        @keyframes terminal-load {
+            0% { width: 0; }
+            100% { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Section -->
+    <header>
+        <h1>ANKUR VATS</h1>
+        <p>CSE STUDENT | FULL STACK DEVELOPER | TECH ENTHUSIAST</p>
+    </header>
+    
+    <!-- Main Content Container -->
+    <div class="container">
+        <!-- About Me Section -->
+        <section id="about">
+            <h2>About Me</h2>
+            <p>
+                Hello! I'm Ankur Vats, a Computer Science Engineering student based in Amaravati, Andhra Pradesh. 
+                I've been working with full stack development for quite some time now, building dynamic web applications 
+                and exploring various technologies across the development stack. My journey in programming has been driven 
+                by curiosity and a passion for creating solutions that make a difference. I enjoy working on both frontend 
+                and backend development, understanding how different components work together to create seamless user 
+                experiences. Currently, I'm expanding my knowledge in modern frameworks and cloud technologies while 
+                pursuing my degree and working on exciting projects that challenge my skills.
+            </p>
+        </section>
+        
+        <!-- Skills Section -->
+        <section id="skills">
+            <h2>Skills</h2>
+            <ul>
+                <li>HTML5 & CSS3</li>
+                <li>JavaScript & TypeScript</li>
+                <li>React.js & Next.js</li>
+                <li>Node.js & Express</li>
+                <li>MongoDB & MySQL</li>
+                <li>Python & Flask</li>
+                <li>RESTful APIs</li>
+                <li>Git & GitHub</li>
+                <li>Responsive Design</li>
+                <li>Data Structures & Algorithms</li>
+            </ul>
+        </section>
+        
+        <!-- Projects Section -->
+        <section id="projects">
+            <h2>Projects</h2>
+            
+            <div class="project">
+                <h3>Student Portal Web Application</h3>
+                <p>
+                    Developed a comprehensive student portal with features like attendance tracking, grade management, 
+                    and assignment submission. Built using React for the frontend and Node.js with Express for the backend. 
+                    Implemented JWT authentication and real-time notifications for important updates.
+                </p>
+            </div>
+            
+            <div class="project">
+                <h3>E-Learning Platform</h3>
+                <p>
+                    Created an interactive e-learning platform where students can access course materials, watch video 
+                    lectures, and take quizzes. Features include progress tracking, discussion forums, and certificate 
+                    generation. Developed with MERN stack and integrated video streaming capabilities.
+                </p>
+            </div>
+            
+            <div class="project">
+                <h3>Personal Blog & Portfolio Website</h3>
+                <p>
+                    Designed and built a responsive blog platform with CMS functionality, allowing easy content management 
+                    and publishing. Implemented SEO optimization, dark mode toggle, and social media integration. 
+                    Uses Next.js for server-side rendering and improved performance.
+                </p>
+            </div>
+        </section>
+    </div>
+    
+    <!-- Footer Section -->
+    <footer>
+        <h3>GET IN TOUCH</h3>
+        <p>Email: <a href="mailto:ankurvats@email.com">ankurvats@email.com</a></p>
+        <p>Location: Amaravati, Andhra Pradesh, India</p>
+        <p>Open to collaboration and new opportunities!</p>
+    </footer>
+</body>
+</html>

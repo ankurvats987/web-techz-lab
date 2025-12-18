@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Registration Form</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        form {
+            background-color: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+        }
+        
+        h2 {
+            margin-top: 0;
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        input[type="date"],
+        input[type="tel"],
+        input[type="password"],
+        input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="date"]:focus,
+        input[type="tel"]:focus,
+        input[type="password"]:focus,
+        input[type="file"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        input[type="file"] {
+            padding: 10px;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        
+        .checkbox-group label {
+            margin-bottom: 0;
+            font-weight: normal;
+            cursor: pointer;
+        }
+        
+        .checkbox-group a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .checkbox-group a:hover {
+            text-decoration: underline;
+        }
+        
+        input[type="submit"] {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 14px 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        input[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        input[type="submit"]:active {
+            transform: translateY(0);
+        }
+        
+        .required {
+            color: #e74c3c;
+        }
+        
+        small {
+            display: block;
+            margin-top: 5px;
+            color: #888;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <form>
+        <h2>User Registration</h2>
+        
+        <div class="form-group">
+            <label for="fullname">Full Name <span class="required">*</span></label>
+            <input type="text" id="fullname" name="fullname" placeholder="Enter your full name" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Email <span class="required">*</span></label>
+            <input type="email" id="email" name="email" placeholder="example@email.com" required>
+            <small>We'll never share your email with anyone else.</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="dob">Date of Birth <span class="required">*</span></label>
+            <input type="date" id="dob" name="dob" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="phone">Phone Number <span class="required">*</span></label>
+            <input type="tel" id="phone" name="phone" placeholder="+1-234-567-8900" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Password <span class="required">*</span></label>
+            <input type="password" id="password" name="password" placeholder="Enter a strong password" minlength="8" required>
+            <small>Password must be at least 8 characters long.</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="profile-pic">Choose Profile Picture</label>
+            <input type="file" id="profile-pic" name="profile-pic" accept="image/*">
+            <small>Accepted formats: JPG, PNG, GIF (Max 5MB)</small>
+        </div>
+        
+        <div class="checkbox-group">
+            <input type="checkbox" id="terms" name="terms" required>
+            <label for="terms">I accept the <a href="#" target="_blank">Terms & Conditions</a> <span class="required">*</span></label>
+        </div>
+        
+        <input type="submit" value="Register">
+    </form>
+</body>
+</html>
