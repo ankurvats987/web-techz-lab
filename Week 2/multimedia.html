@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HTML5 Audio and Video</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .media-section {
+        background-color: white;
+        padding: 30px;
+        margin-bottom: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        text-align: center;
+        color: #333;
+      }
+      h2 {
+        color: #2c3e50;
+        margin-bottom: 20px;
+      }
+      audio,
+      video {
+        width: 100%;
+        margin-bottom: 15px;
+        border-radius: 5px;
+      }
+      .time-display {
+        font-size: 18px;
+        color: #555;
+        padding: 10px;
+        background-color: #ecf0f1;
+        border-radius: 5px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>HTML5 Multimedia Player</h1>
+
+    <div class="media-section">
+      <h2>Audio Player</h2>
+      <audio id="audioPlayer" controls>
+        <source
+          src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+          type="audio/mpeg"
+        />
+        Your browser does not support the audio element.
+      </audio>
+      <div class="time-display" id="audioTime">
+        Current Time: 0:00 / Duration: 0:00
+      </div>
+    </div>
+
+    <div class="media-section">
+      <h2>Video Player</h2>
+      <video id="videoPlayer" controls>
+        <source
+          src="https://www.w3schools.com/html/mov_bbb.mp4"
+          type="video/mp4"
+        />
+        Your browser does not support the video element.
+      </video>
+      <div class="time-display" id="videoTime">
+        Current Time: 0:00 / Duration: 0:00
+      </div>
+    </div>
+
+    <script>
+      const audioPlayer = document.getElementById("audioPlayer");
+      const videoPlayer = document.getElementById("videoPlayer");
+      const audioTime = document.getElementById("audioTime");
+      const videoTime = document.getElementById("videoTime");
+
+      function formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, "0")}`;
+      }
+
+      // Audio time update
+      audioPlayer.addEventListener("timeupdate", () => {
+        const current = formatTime(audioPlayer.currentTime);
+        const duration = formatTime(audioPlayer.duration || 0);
+        audioTime.textContent = `Current Time: ${current} / Duration: ${duration}`;
+      });
+
+      audioPlayer.addEventListener("loadedmetadata", () => {
+        const duration = formatTime(audioPlayer.duration);
+        audioTime.textContent = `Current Time: 0:00 / Duration: ${duration}`;
+      });
+
+      // Video time update
+      videoPlayer.addEventListener("timeupdate", () => {
+        const current = formatTime(videoPlayer.currentTime);
+        const duration = formatTime(videoPlayer.duration || 0);
+        videoTime.textContent = `Current Time: ${current} / Duration: ${duration}`;
+      });
+
+      videoPlayer.addEventListener("loadedmetadata", () => {
+        const duration = formatTime(videoPlayer.duration);
+        videoTime.textContent = `Current Time: 0:00 / Duration: ${duration}`;
+      });
+    </script>
+  </body>
+</html>
