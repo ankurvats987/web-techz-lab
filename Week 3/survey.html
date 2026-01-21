@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Survey</title>
+<style>
+  .error { color: red; font-size: 12px; }
+</style>
+</head>
+
+<body>
+<h2>Survey</h2>
+<form id="survey"></form>
+<button onclick="submitSurvey()">Submit</button>
+
+<script>
+const questions = [
+  { id:1, type:"text", required:true, max:20 },
+  { id:2, type:"radio", options:["Yes","No"], required:true },
+  { id:3, type:"checkbox", options:["JS","Python"], min:1 }
+];
+
+const form = document.getElementById("survey");
+
+questions.forEach(q => {
+  let html = `<div data-id="${q.id}">`;
+  if (q.type === "text")
+    html += `<input /><span class="error"></span>`;
+  if (q.type === "radio")
+    q.options.forEach(o => html += `<label><input type="radio" name="${q.id}" />${o}</label>`);
+  if (q.type === "checkbox")
+    q.options.forEach(o => html += `<label><input type="checkbox" />${o}</label>`);
+  html += `</div>`;
+  form.innerHTML += html;
+});
+
+function submitSurvey() {
+  let valid = true;
+  document.querySelectorAll(".error").forEach(e => e.textContent="");
+
+  questions.forEach(q => {
+    const div = document.querySelector(`[data-id="${q.id}"]`);
+    if (q.type === "text") {
+      const v = div.querySelector("input").value;
+      if (!v || v.length > q.max) {
+        div.querySelector(".error").textContent = "Invalid input";
+        valid = false;
+      }
+    }
+  });
+
+  if (valid) alert("Survey submitted");
+}
+</script>
+</body>
+</html>

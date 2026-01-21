@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Multi Stage Form</title>
+<style>
+  .stage { display:none; }
+  .active { display:block; }
+  #bar { height: 10px; background: green; width: 0; }
+</style>
+</head>
+
+<body>
+<h2>Multi-Stage Form</h2>
+<div id="bar"></div>
+
+<div class="stage active">
+  <input id="name" placeholder="Name" />
+</div>
+
+<div class="stage">
+  <input id="email" placeholder="Email" />
+</div>
+
+<div class="stage">
+  <input id="age" placeholder="Age" />
+</div>
+
+<div class="stage">
+  <p>Confirm & Submit</p>
+</div>
+
+<button onclick="next()">Next</button>
+
+<script>
+const stages = document.querySelectorAll(".stage");
+let current = 0;
+const data = {};
+
+function validate() {
+  if (current === 0) return name.value;
+  if (current === 1) return email.value.includes("@");
+  if (current === 2) return age.value > 0;
+  return true;
+}
+
+function next() {
+  if (!validate()) return alert("Fix errors");
+  stages[current].classList.remove("active");
+  current++;
+  stages[current].classList.add("active");
+  bar.style.width = ((current+1)/4)*100 + "%";
+}
+</script>
+</body>
+</html>

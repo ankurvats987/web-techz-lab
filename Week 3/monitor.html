@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Activity Monitor</title>
+</head>
+
+<body>
+<h2>Activity Log</h2>
+<button onclick="reset()">Reset</button>
+<button onclick="exportLog()">Export</button>
+<ul id="log"></ul>
+
+<script>
+const logs = [];
+
+function log(type, e) {
+  logs.push({ type, target: e.target.tagName, time: Date.now() });
+  render();
+  if (logs.filter(l => l.type==="click").length > 10)
+    alert("Suspicious activity!");
+}
+
+document.addEventListener("click", e => log("click", e), true);
+document.addEventListener("keydown", e => log("key", e));
+
+function render() {
+  logEl.innerHTML = logs.map(l => `<li>${l.type} on ${l.target}</li>`).join("");
+}
+
+function reset() {
+  logs.length = 0;
+  render();
+}
+
+function exportLog() {
+  alert(logs.map(l => JSON.stringify(l)).join("\n"));
+}
+</script>
+</body>
+</html>

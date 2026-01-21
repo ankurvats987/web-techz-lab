@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Adaptive Registration</title>
+<style>
+  body { font-family: Arial; max-width: 500px; margin: auto; }
+  input, select { width: 100%; margin: 6px 0; padding: 8px; }
+  .error { border: 2px solid red; }
+  .msg { color: red; font-size: 12px; }
+  #skillsBox { display: none; }
+</style>
+</head>
+
+<body>
+<h2>Registration Form</h2>
+
+<form id="form">
+  <input id="name" placeholder="Name" />
+  <div class="msg"></div>
+
+  <input id="email" placeholder="Email" />
+  <div class="msg"></div>
+
+  <input id="password" type="password" placeholder="Password" />
+  <div class="msg"></div>
+
+  <input id="confirm" type="password" placeholder="Confirm Password" />
+  <div class="msg"></div>
+
+  <input id="age" type="number" placeholder="Age" />
+  <div class="msg"></div>
+
+  <select id="role">
+    <option value="student">Student</option>
+    <option value="teacher">Teacher</option>
+    <option value="admin">Admin</option>
+  </select>
+
+  <div id="skillsBox">
+    <input id="skills" placeholder="Skills (comma separated)" />
+    <div class="msg"></div>
+  </div>
+
+  <button>Register</button>
+</form>
+
+<script>
+const rules = {
+  student: { min: 6 },
+  teacher: { min: 8, skills: true },
+  admin: { min: 12, upper: true, special: true }
+};
+
+const inputs = document.querySelectorAll("input");
+const role = document.getElementById("role");
+const skillsBox = document.getElementById("skillsBox");
+
+role.onchange = () => {
+  skillsBox.style.display = rules[role.value].skills ? "block" : "none";
+};
+
+function mark(input, msg) {
+  input.classList.add("error");
+  input.nextElementSibling.textContent = msg;
+}
+
+function clear(input) {
+  input.classList.remove("error");
+  input.nextElementSibling.textContent = "";
+}
+
+function validate() {
+  let ok = true;
+  inputs.forEach(i => clear(i));
+
+  if (!email.value.includes("@")) { mark(email, "Invalid email"); ok=false; }
+
+  const r = rules[role.value];
+  if (password.value.length < r.min) { mark(password, "Weak password"); ok=false; }
+  if (r.upper && !/[A-Z]/.test(password.value)) { mark(password,"Need uppercase"); ok=false; }
+  if (r.special && !/[!@#$]/.test(password.value)) { mark(password,"Need special char"); ok=false; }
+
+  if (password.value !== confirm.value) { mark(confirm,"Passwords mismatch"); ok=false; }
+
+  if (r.skills && !skills.value) { mark(skills,"Skills required"); ok=false; }
+
+  return ok;
+}
+
+form.onsubmit = e => {
+  if (!validate()) e.preventDefault();
+};
+</script>
+</body>
+</html>
