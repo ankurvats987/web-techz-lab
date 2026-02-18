@@ -1,0 +1,16 @@
+{
+  "products": [
+    { "name": "Wireless Mouse", "price": 25.99, "category": "Accessories" },
+    { "name": "Mechanical Keyboard", "price": 79.5, "category": "Accessories" },
+    { "name": "USB-C Hub", "price": 39.0, "category": "Accessories" },
+    {
+      "name": "Noise Cancelling Headphones",
+      "price": 199.99,
+      "category": "Audio"
+    },
+    { "name": "Smartwatch Pro", "price": 149.0, "category": "Wearables" },
+    { "name": "4K Monitor", "price": 329.99, "category": "Displays" },
+    { "name": "Gaming Laptop", "price": 1199.0, "category": "Computers" },
+    { "name": "Portable SSD", "price": 89.99, "category": "Storage" }
+  ]
+}

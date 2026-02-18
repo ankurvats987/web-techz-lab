@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Exercise 2 - AJAX Product Search</title>
+    <style>
+      :root {
+        font-family: "Georgia", "Times New Roman", serif;
+        --bg: #f3f0f7;
+        --panel: #ffffff;
+        --ink: #2a2233;
+        --muted: #6f657b;
+        --accent: #cf4c2a;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: linear-gradient(120deg, #fbe5d6, #e5edf9);
+        display: grid;
+        place-items: center;
+        padding: 32px 16px;
+        color: var(--ink);
+      }
+
+      .panel {
+        width: min(760px, 100%);
+        background: var(--panel);
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: 0 16px 36px rgba(44, 36, 55, 0.18);
+      }
+
+      h1 {
+        margin: 0 0 12px;
+        font-size: 1.8rem;
+      }
+
+      .search-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      input {
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid #d2c6dd;
+        font-size: 1rem;
+      }
+
+      .hint {
+        margin-top: 6px;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      .results {
+        margin-top: 22px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .card {
+        border-radius: 14px;
+        border: 1px solid #eadff2;
+        padding: 14px 16px;
+        background: #fff;
+        display: grid;
+        gap: 4px;
+      }
+
+      .price {
+        color: var(--accent);
+        font-weight: 700;
+      }
+
+      .status {
+        margin-top: 12px;
+        font-weight: 600;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="panel">
+      <h1>AJAX-Based Product Search</h1>
+      <p>Start typing to fetch product results without reloading the page.</p>
+
+      <div class="search-row">
+        <input
+          id="searchInput"
+          type="text"
+          placeholder="Search for products..."
+        />
+      </div>
+      <div class="hint">Example: "monitor", "audio", "accessories"</div>
+
+      <div id="status" class="status"></div>
+      <div id="results" class="results"></div>
+    </div>
+
+    <script>
+      const searchInput = document.getElementById("searchInput");
+      const resultsEl = document.getElementById("results");
+      const statusEl = document.getElementById("status");
+
+      let debounceTimer = null;
+
+      const setStatus = (message) => {
+        statusEl.textContent = message;
+      };
+
+      const renderResults = (items) => {
+        resultsEl.innerHTML = "";
+
+        if (!items.length) {
+          setStatus("No results found");
+          return;
+        }
+
+        setStatus(`${items.length} result(s) found`);
+        items.forEach((item) => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+          <strong>${item.name}</strong>
+          <span class="price">$${item.price.toFixed(2)}</span>
+          <span>${item.category}</span>
+        `;
+          resultsEl.appendChild(card);
+        });
+      };
+
+      const fetchProducts = async (query) => {
+        if (!query) {
+          resultsEl.innerHTML = "";
+          setStatus("Type something to start searching.");
+          return;
+        }
+
+        try {
+          setStatus("Searching...");
+          const response = await fetch("week4-ex2-products.json");
+          if (!response.ok) {
+            throw new Error("Failed to load products");
+          }
+          const data = await response.json();
+          const products = data.products || [];
+          const lower = query.toLowerCase();
+          const filtered = products.filter((product) =>
+            [product.name, product.category].some((field) =>
+              field.toLowerCase().includes(lower),
+            ),
+          );
+
+          renderResults(filtered);
+        } catch (error) {
+          setStatus("Error fetching products. Please try again.");
+          resultsEl.innerHTML = "";
+        }
+      };
+
+      searchInput.addEventListener("input", (event) => {
+        const value = event.target.value.trim();
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          fetchProducts(value);
+        }, 350);
+      });
+
+      setStatus("Type something to start searching.");
+    </script>
+  </body>
+</html>

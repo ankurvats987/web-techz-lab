@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Exercise 3 - AJAX Student CRUD</title>
+    <style>
+      :root {
+        font-family: "Gill Sans", "Segoe UI", sans-serif;
+        --bg: #eef4f0;
+        --panel: #ffffff;
+        --ink: #173024;
+        --muted: #5b6b61;
+        --accent: #1c7c54;
+        --danger: #b43838;
+        --warning: #d18b1f;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: linear-gradient(130deg, #d4ead9 0%, #f7efe1 100%);
+        color: var(--ink);
+        display: grid;
+        place-items: center;
+        padding: 32px 16px;
+      }
+
+      .panel {
+        width: min(960px, 100%);
+        background: var(--panel);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 18px 36px rgba(20, 45, 30, 0.18);
+      }
+
+      h1 {
+        margin: 0 0 8px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+
+      input {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid #c4d5c8;
+        font-size: 1rem;
+      }
+
+      button {
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: none;
+        background: var(--accent);
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      button.secondary {
+        background: #375a4a;
+      }
+
+      button.ghost {
+        background: transparent;
+        color: var(--accent);
+        border: 1px solid var(--accent);
+      }
+
+      button.danger {
+        background: var(--danger);
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .status {
+        margin-top: 12px;
+        font-weight: 600;
+      }
+
+      .status.good {
+        color: var(--accent);
+      }
+      .status.bad {
+        color: var(--danger);
+      }
+      .status.warn {
+        color: var(--warning);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        font-size: 0.95rem;
+      }
+
+      th,
+      td {
+        padding: 10px;
+        border-bottom: 1px solid #dde6df;
+        text-align: left;
+      }
+
+      tr:hover {
+        background: #f4faf6;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="panel">
+      <h1>AJAX CRUD Operations - Student Management</h1>
+      <p>Manage student data using simulated AJAX requests.</p>
+
+      <form id="studentForm" novalidate>
+        <div class="grid">
+          <div>
+            <label for="studentId">Student ID</label>
+            <input id="studentId" required />
+          </div>
+          <div>
+            <label for="studentName">Name</label>
+            <input id="studentName" required />
+          </div>
+          <div>
+            <label for="studentDept">Department</label>
+            <input id="studentDept" required />
+          </div>
+          <div>
+            <label for="studentMarks">Marks</label>
+            <input id="studentMarks" type="number" min="0" max="100" required />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="submit" id="saveBtn">Add Student</button>
+          <button type="button" class="secondary" id="updateBtn" hidden>
+            Update Student
+          </button>
+          <button type="button" class="ghost" id="cancelBtn" hidden>
+            Cancel Edit
+          </button>
+        </div>
+      </form>
+
+      <div id="status" class="status"></div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Department</th>
+            <th>Marks</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="studentTable"></tbody>
+      </table>
+    </div>
+
+    <script>
+      const form = document.getElementById("studentForm");
+      const studentId = document.getElementById("studentId");
+      const studentName = document.getElementById("studentName");
+      const studentDept = document.getElementById("studentDept");
+      const studentMarks = document.getElementById("studentMarks");
+      const statusEl = document.getElementById("status");
+      const saveBtn = document.getElementById("saveBtn");
+      const updateBtn = document.getElementById("updateBtn");
+      const cancelBtn = document.getElementById("cancelBtn");
+      const tableBody = document.getElementById("studentTable");
+
+      let students = [];
+      let editingId = null;
+
+      const setStatus = (message, tone) => {
+        statusEl.textContent = message;
+        statusEl.className = `status ${tone || ""}`.trim();
+      };
+
+      const resetForm = () => {
+        form.reset();
+        editingId = null;
+        saveBtn.hidden = false;
+        updateBtn.hidden = true;
+        cancelBtn.hidden = true;
+      };
+
+      const renderTable = () => {
+        tableBody.innerHTML = "";
+        students.forEach((student) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+          <td>${student.id}</td>
+          <td>${student.name}</td>
+          <td>${student.department}</td>
+          <td>${student.marks}</td>
+          <td>
+            <button class="ghost" data-action="edit" data-id="${student.id}">Edit</button>
+            <button class="danger" data-action="delete" data-id="${student.id}">Delete</button>
+          </td>
+        `;
+          tableBody.appendChild(row);
+        });
+      };
+
+      const fakeRequest = (action, payload) =>
+        new Promise((resolve) => {
+          setTimeout(() => {
+            if (action === "create") {
+              const exists = students.some(
+                (student) => student.id === payload.id,
+              );
+              if (exists) {
+                resolve({ status: 500, message: "Student ID already exists." });
+                return;
+              }
+              students.push(payload);
+              resolve({ status: 200, data: payload });
+              return;
+            }
+
+            if (action === "update") {
+              const index = students.findIndex(
+                (student) => student.id === payload.id,
+              );
+              if (index === -1) {
+                resolve({ status: 404, message: "Student not found." });
+                return;
+              }
+              students[index] = payload;
+              resolve({ status: 200, data: payload });
+              return;
+            }
+
+            if (action === "delete") {
+              const index = students.findIndex(
+                (student) => student.id === payload.id,
+              );
+              if (index === -1) {
+                resolve({ status: 404, message: "Student not found." });
+                return;
+              }
+              students.splice(index, 1);
+              resolve({ status: 200 });
+              return;
+            }
+
+            resolve({ status: 500, message: "Unknown action" });
+          }, 400);
+        });
+
+      const loadStudents = async () => {
+        try {
+          const response = await fetch("week4-ex3-students.json");
+          if (!response.ok) {
+            throw new Error("Failed to fetch students");
+          }
+          const data = await response.json();
+          students = data.students || [];
+          renderTable();
+          setStatus("Loaded students successfully (200)", "good");
+        } catch (error) {
+          setStatus("Error loading students (500)", "bad");
+        }
+      };
+
+      const readFormData = () => ({
+        id: studentId.value.trim(),
+        name: studentName.value.trim(),
+        department: studentDept.value.trim(),
+        marks: Number(studentMarks.value),
+      });
+
+      const validateForm = () => {
+        const data = readFormData();
+        if (!data.id || !data.name || !data.department) {
+          setStatus("All fields are required.", "warn");
+          return null;
+        }
+        if (Number.isNaN(data.marks)) {
+          setStatus("Marks must be a number.", "warn");
+          return null;
+        }
+        return data;
+      };
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const data = validateForm();
+        if (!data) {
+          return;
+        }
+
+        const response = await fakeRequest("create", data);
+        if (response.status === 200) {
+          renderTable();
+          setStatus("Student added successfully (200)", "good");
+          resetForm();
+        } else {
+          setStatus(`${response.message} (${response.status})`, "bad");
+        }
+      });
+
+      updateBtn.addEventListener("click", async () => {
+        const data = validateForm();
+        if (!data) {
+          return;
+        }
+
+        const response = await fakeRequest("update", data);
+        if (response.status === 200) {
+          renderTable();
+          setStatus("Student updated successfully (200)", "good");
+          resetForm();
+        } else {
+          setStatus(`${response.message} (${response.status})`, "bad");
+        }
+      });
+
+      cancelBtn.addEventListener("click", () => {
+        resetForm();
+        setStatus("Edit canceled.", "warn");
+      });
+
+      tableBody.addEventListener("click", async (event) => {
+        const button = event.target.closest("button");
+        if (!button) {
+          return;
+        }
+        const action = button.dataset.action;
+        const id = button.dataset.id;
+
+        if (action === "edit") {
+          const student = students.find((item) => item.id === id);
+          if (!student) {
+            setStatus("Student not found (404)", "bad");
+            return;
+          }
+          studentId.value = student.id;
+          studentName.value = student.name;
+          studentDept.value = student.department;
+          studentMarks.value = student.marks;
+          editingId = student.id;
+          saveBtn.hidden = true;
+          updateBtn.hidden = false;
+          cancelBtn.hidden = false;
+          setStatus("Editing student...", "warn");
+        }
+
+        if (action === "delete") {
+          const response = await fakeRequest("delete", { id });
+          if (response.status === 200) {
+            renderTable();
+            setStatus("Student deleted successfully (200)", "good");
+            if (editingId === id) {
+              resetForm();
+            }
+          } else {
+            setStatus(`${response.message} (${response.status})`, "bad");
+          }
+        }
+      });
+
+      loadStudents();
+    </script>
+  </body>
+</html>

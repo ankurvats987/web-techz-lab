@@ -1,0 +1,17 @@
+{
+  "students": [
+    {
+      "id": "S101",
+      "name": "Ava Smith",
+      "department": "Computer Science",
+      "marks": 88
+    },
+    { "id": "S102", "name": "Liam Chen", "department": "Physics", "marks": 91 },
+    {
+      "id": "S103",
+      "name": "Noah Patel",
+      "department": "Mathematics",
+      "marks": 84
+    }
+  ]
+}
