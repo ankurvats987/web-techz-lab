@@ -1,0 +1,22 @@
+{
+  "students": [
+    {
+      "id": "ST301",
+      "name": "Alicia Rivera",
+      "course": "Biology",
+      "marks": 85
+    },
+    {
+      "id": "ST302",
+      "name": "Noah Brooks",
+      "course": "Chemistry",
+      "marks": 92
+    },
+    {
+      "id": "ST303",
+      "name": "Emma Harris",
+      "course": "Mathematics",
+      "marks": 78
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<books>
+  <book>
+    <id>B201</id>
+    <title>Clean Code</title>
+    <author>Robert C. Martin</author>
+    <status>Available</status>
+  </book>
+  <book>
+    <id>B202</id>
+    <title>The Pragmatic Programmer</title>
+    <author>Andrew Hunt</author>
+    <status>Checked Out</status>
+  </book>
+  <book>
+    <id>B203</id>
+    <title>Design Patterns</title>
+    <author>Erich Gamma</author>
+    <status>Available</status>
+  </book>
+</books>

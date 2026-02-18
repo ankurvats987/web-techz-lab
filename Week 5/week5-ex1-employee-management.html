@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Exercise 1 - Employee Management (XML)</title>
+    <style>
+      :root {
+        font-family: "Segoe UI", Tahoma, sans-serif;
+        --bg: #f6f2ea;
+        --panel: #ffffff;
+        --ink: #221d15;
+        --muted: #6b6157;
+        --accent: #2c6e91;
+        --danger: #b33c3c;
+        --warn: #b8842b;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at top, #fbe3c0, transparent 60%),
+          radial-gradient(circle at bottom, #cfe6f5, transparent 60%), var(--bg);
+        color: var(--ink);
+        display: grid;
+        place-items: center;
+        padding: 32px 16px;
+      }
+
+      .panel {
+        width: min(980px, 100%);
+        background: var(--panel);
+        padding: 24px;
+        border-radius: 18px;
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.15);
+      }
+
+      h1 {
+        margin: 0 0 8px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+
+      input {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid #d2c4b2;
+        font-size: 1rem;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      button {
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: none;
+        background: var(--accent);
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      button.secondary {
+        background: #3b5d70;
+      }
+      button.ghost {
+        background: transparent;
+        color: var(--accent);
+        border: 1px solid var(--accent);
+      }
+      button.danger {
+        background: var(--danger);
+      }
+
+      .status {
+        margin-top: 12px;
+        font-weight: 600;
+      }
+
+      .status.good {
+        color: var(--accent);
+      }
+      .status.bad {
+        color: var(--danger);
+      }
+      .status.warn {
+        color: var(--warn);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+
+      th,
+      td {
+        text-align: left;
+        padding: 10px;
+        border-bottom: 1px solid #e5ded3;
+      }
+
+      tr:hover {
+        background: #fbf7f0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="panel">
+      <h1>Employee Management System (XML)</h1>
+      <p>Local XML CRUD with AJAX and DOM updates.</p>
+
+      <form id="employeeForm" novalidate>
+        <div class="grid">
+          <div>
+            <label for="empId">Employee ID</label>
+            <input id="empId" required />
+          </div>
+          <div>
+            <label for="empName">Name</label>
+            <input id="empName" required />
+          </div>
+          <div>
+            <label for="empDept">Department</label>
+            <input id="empDept" required />
+          </div>
+          <div>
+            <label for="empSalary">Salary</label>
+            <input id="empSalary" type="number" min="0" required />
+          </div>
+        </div>
+        <div class="actions">
+          <button type="submit" id="addBtn">Add Employee</button>
+          <button type="button" id="updateBtn" class="secondary" hidden>
+            Update Employee
+          </button>
+          <button type="button" id="cancelBtn" class="ghost" hidden>
+            Cancel Edit
+          </button>
+        </div>
+      </form>
+
+      <div id="status" class="status"></div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Department</th>
+            <th>Salary</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="employeeTable"></tbody>
+      </table>
+    </div>
+
+    <script>
+      const form = document.getElementById("employeeForm");
+      const empId = document.getElementById("empId");
+      const empName = document.getElementById("empName");
+      const empDept = document.getElementById("empDept");
+      const empSalary = document.getElementById("empSalary");
+      const addBtn = document.getElementById("addBtn");
+      const updateBtn = document.getElementById("updateBtn");
+      const cancelBtn = document.getElementById("cancelBtn");
+      const statusEl = document.getElementById("status");
+      const tableBody = document.getElementById("employeeTable");
+
+      let xmlDoc = null;
+      let editingId = null;
+
+      const setStatus = (message, tone) => {
+        statusEl.textContent = message;
+        statusEl.className = `status ${tone || ""}`.trim();
+      };
+
+      const resetForm = () => {
+        form.reset();
+        editingId = null;
+        addBtn.hidden = false;
+        updateBtn.hidden = true;
+        cancelBtn.hidden = true;
+      };
+
+      const loadEmployees = () => {
+        const request = new XMLHttpRequest();
+        request.open("GET", "week5-ex1-employees.xml", true);
+        request.onload = () => {
+          if (request.status !== 200) {
+            setStatus(`Failed to load employees (${request.status})`, "bad");
+            return;
+          }
+
+          if (!request.responseXML || !request.responseXML.documentElement) {
+            setStatus("XML is empty or malformed.", "bad");
+            return;
+          }
+
+          xmlDoc = request.responseXML;
+          renderTable();
+          setStatus("Employees loaded successfully (200)", "good");
+        };
+        request.onerror = () => {
+          setStatus("Network error while loading XML.", "bad");
+        };
+        request.send();
+      };
+
+      const getEmployees = () =>
+        Array.from(xmlDoc.getElementsByTagName("employee"));
+
+      const renderTable = () => {
+        if (!xmlDoc) {
+          return;
+        }
+        tableBody.innerHTML = "";
+        const employees = getEmployees();
+        if (employees.length === 0) {
+          setStatus("No employee records found.", "warn");
+          return;
+        }
+
+        employees.forEach((employee) => {
+          const id = employee.getElementsByTagName("id")[0]?.textContent || "";
+          const name =
+            employee.getElementsByTagName("name")[0]?.textContent || "";
+          const dept =
+            employee.getElementsByTagName("department")[0]?.textContent || "";
+          const salary =
+            employee.getElementsByTagName("salary")[0]?.textContent || "";
+
+          const row = document.createElement("tr");
+          row.innerHTML = `
+          <td>${id}</td>
+          <td>${name}</td>
+          <td>${dept}</td>
+          <td>${salary}</td>
+          <td>
+            <button class="ghost" data-action="edit" data-id="${id}">Edit</button>
+            <button class="danger" data-action="delete" data-id="${id}">Delete</button>
+          </td>
+        `;
+          tableBody.appendChild(row);
+        });
+      };
+
+      const findEmployeeById = (id) =>
+        getEmployees().find(
+          (employee) =>
+            employee.getElementsByTagName("id")[0]?.textContent === id,
+        );
+
+      const readFormData = () => ({
+        id: empId.value.trim(),
+        name: empName.value.trim(),
+        department: empDept.value.trim(),
+        salary: empSalary.value.trim(),
+      });
+
+      const validateForm = () => {
+        const data = readFormData();
+        if (!data.id || !data.name || !data.department || !data.salary) {
+          setStatus("All fields are required.", "warn");
+          return null;
+        }
+        if (Number.isNaN(Number(data.salary))) {
+          setStatus("Salary must be a number.", "warn");
+          return null;
+        }
+        return data;
+      };
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const data = validateForm();
+        if (!data) {
+          return;
+        }
+
+        if (findEmployeeById(data.id)) {
+          setStatus("Employee ID already exists (500)", "bad");
+          return;
+        }
+
+        const employeeNode = xmlDoc.createElement("employee");
+        ["id", "name", "department", "salary"].forEach((tag) => {
+          const node = xmlDoc.createElement(tag);
+          node.textContent = data[tag];
+          employeeNode.appendChild(node);
+        });
+
+        xmlDoc.documentElement.appendChild(employeeNode);
+        renderTable();
+        setStatus("Employee added (200)", "good");
+        resetForm();
+      });
+
+      updateBtn.addEventListener("click", () => {
+        const data = validateForm();
+        if (!data) {
+          return;
+        }
+        const employee = findEmployeeById(editingId);
+        if (!employee) {
+          setStatus("Employee not found (404)", "bad");
+          return;
+        }
+
+        employee.getElementsByTagName("department")[0].textContent =
+          data.department;
+        employee.getElementsByTagName("salary")[0].textContent = data.salary;
+        renderTable();
+        setStatus("Employee updated (200)", "good");
+        resetForm();
+      });
+
+      cancelBtn.addEventListener("click", () => {
+        resetForm();
+        setStatus("Edit canceled.", "warn");
+      });
+
+      tableBody.addEventListener("click", (event) => {
+        const button = event.target.closest("button");
+        if (!button) {
+          return;
+        }
+        const action = button.dataset.action;
+        const id = button.dataset.id;
+
+        if (action === "edit") {
+          const employee = findEmployeeById(id);
+          if (!employee) {
+            setStatus("Employee not found (404)", "bad");
+            return;
+          }
+          empId.value = id;
+          empName.value =
+            employee.getElementsByTagName("name")[0]?.textContent || "";
+          empDept.value =
+            employee.getElementsByTagName("department")[0]?.textContent || "";
+          empSalary.value =
+            employee.getElementsByTagName("salary")[0]?.textContent || "";
+          editingId = id;
+          addBtn.hidden = true;
+          updateBtn.hidden = false;
+          cancelBtn.hidden = false;
+          setStatus("Editing employee...", "warn");
+        }
+
+        if (action === "delete") {
+          const employee = findEmployeeById(id);
+          if (!employee) {
+            setStatus("Employee not found (404)", "bad");
+            return;
+          }
+          xmlDoc.documentElement.removeChild(employee);
+          renderTable();
+          setStatus("Employee deleted (200)", "good");
+          if (editingId === id) {
+            resetForm();
+          }
+        }
+      });
+
+      loadEmployees();
+    </script>
+  </body>
+</html>

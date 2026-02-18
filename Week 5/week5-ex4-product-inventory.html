@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Exercise 4 - Product Inventory (JSON)</title>
+    <style>
+      :root {
+        font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+        --bg: #f1f7f5;
+        --panel: #ffffff;
+        --ink: #1b2b24;
+        --muted: #5f6f69;
+        --accent: #1f6f59;
+        --danger: #c04040;
+        --warn: #c48a2b;
+        --low: #fff3e6;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 20% 20%, #cdeee3, transparent 55%),
+          radial-gradient(circle at 80% 80%, #ffe9cc, transparent 55%),
+          var(--bg);
+        display: grid;
+        place-items: center;
+        padding: 32px 16px;
+        color: var(--ink);
+      }
+
+      .panel {
+        width: min(1100px, 100%);
+        background: var(--panel);
+        padding: 24px;
+        border-radius: 18px;
+        box-shadow: 0 16px 36px rgba(17, 40, 32, 0.14);
+      }
+
+      h1 {
+        margin: 0 0 8px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+
+      input,
+      select {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid #c6d8d0;
+        font-size: 1rem;
+        background: #fff;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      button {
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: none;
+        background: var(--accent);
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      button.secondary {
+        background: #356b59;
+      }
+      button.ghost {
+        background: transparent;
+        color: var(--accent);
+        border: 1px solid var(--accent);
+      }
+      button.danger {
+        background: var(--danger);
+      }
+
+      .status {
+        margin-top: 12px;
+        font-weight: 600;
+      }
+
+      .status.good {
+        color: var(--accent);
+      }
+      .status.bad {
+        color: var(--danger);
+      }
+      .status.warn {
+        color: var(--warn);
+      }
+
+      .summary {
+        margin-top: 16px;
+        padding: 12px;
+        background: #f5fbf9;
+        border: 1px solid #d6e8e1;
+        border-radius: 12px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+
+      th,
+      td {
+        text-align: left;
+        padding: 10px;
+        border-bottom: 1px solid #e0ece7;
+      }
+
+      tr.low-stock {
+        background: var(--low);
+      }
+      tr:hover {
+        background: #f2fbf7;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="panel">
+      <h1>Product Inventory System (JSON)</h1>
+      <p>Manage product inventory with search and totals.</p>
+
+      <form id="productForm" novalidate>
+        <div class="grid">
+          <div>
+            <label for="productId">Product ID</label>
+            <input id="productId" required />
+          </div>
+          <div>
+            <label for="productName">Name</label>
+            <input id="productName" required />
+          </div>
+          <div>
+            <label for="productCategory">Category</label>
+            <input id="productCategory" required />
+          </div>
+          <div>
+            <label for="productPrice">Price</label>
+            <input
+              id="productPrice"
+              type="number"
+              min="0"
+              step="0.01"
+              required
+            />
+          </div>
+          <div>
+            <label for="productStock">Stock Quantity</label>
+            <input id="productStock" type="number" min="0" required />
+          </div>
+        </div>
+        <div class="actions">
+          <button type="submit" id="addBtn">Add Product</button>
+          <button type="button" id="updateBtn" class="secondary" hidden>
+            Update Product
+          </button>
+          <button type="button" id="cancelBtn" class="ghost" hidden>
+            Cancel Edit
+          </button>
+        </div>
+      </form>
+
+      <div class="actions">
+        <input id="searchInput" placeholder="Search by category" />
+        <button type="button" id="searchBtn" class="ghost">Search</button>
+        <button type="button" id="clearBtn" class="secondary">
+          Clear Search
+        </button>
+      </div>
+
+      <div id="status" class="status"></div>
+      <div id="summary" class="summary"></div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="inventoryTable"></tbody>
+      </table>
+    </div>
+
+    <script>
+      const form = document.getElementById("productForm");
+      const productId = document.getElementById("productId");
+      const productName = document.getElementById("productName");
+      const productCategory = document.getElementById("productCategory");
+      const productPrice = document.getElementById("productPrice");
+      const productStock = document.getElementById("productStock");
+      const addBtn = document.getElementById("addBtn");
+      const updateBtn = document.getElementById("updateBtn");
+      const cancelBtn = document.getElementById("cancelBtn");
+      const statusEl = document.getElementById("status");
+      const summaryEl = document.getElementById("summary");
+      const tableBody = document.getElementById("inventoryTable");
+      const searchInput = document.getElementById("searchInput");
+
+      let products = [];
+      let editingId = null;
+      let activeFilter = "";
+
+      const setStatus = (message, tone) => {
+        statusEl.textContent = message;
+        statusEl.className = `status ${tone || ""}`.trim();
+      };
+
+      const resetForm = () => {
+        form.reset();
+        editingId = null;
+        addBtn.hidden = false;
+        updateBtn.hidden = true;
+        cancelBtn.hidden = true;
+      };
+
+      const updateSummary = (items) => {
+        const totalValue = items.reduce(
+          (sum, item) => sum + item.price * item.stock,
+          0,
+        );
+        summaryEl.textContent = `Total Inventory Value: $${totalValue.toFixed(2)}`;
+      };
+
+      const renderTable = (items = products) => {
+        tableBody.innerHTML = "";
+        if (!items.length) {
+          setStatus("No products found.", "warn");
+          updateSummary([]);
+          return;
+        }
+
+        items.forEach((product) => {
+          const row = document.createElement("tr");
+          if (product.stock <= 5) {
+            row.classList.add("low-stock");
+          }
+          row.innerHTML = `
+          <td>${product.id}</td>
+          <td>${product.name}</td>
+          <td>${product.category}</td>
+          <td>$${product.price.toFixed(2)}</td>
+          <td>${product.stock}</td>
+          <td>
+            <button class="ghost" data-action="edit" data-id="${product.id}">Edit</button>
+            <button class="danger" data-action="delete" data-id="${product.id}">Delete</button>
+          </td>
+        `;
+          tableBody.appendChild(row);
+        });
+
+        setStatus(
+          activeFilter
+            ? `Filtered by category: ${activeFilter}`
+            : "Inventory loaded.",
+          "good",
+        );
+        updateSummary(items);
+      };
+
+      const readFormData = () => ({
+        id: productId.value.trim(),
+        name: productName.value.trim(),
+        category: productCategory.value.trim(),
+        price: Number(productPrice.value),
+        stock: Number(productStock.value),
+      });
+
+      const validateForm = () => {
+        const data = readFormData();
+        if (!data.id || !data.name || !data.category) {
+          setStatus("All fields are required.", "warn");
+          return null;
+        }
+        if (Number.isNaN(data.price) || Number.isNaN(data.stock)) {
+          setStatus("Price and stock must be valid numbers.", "warn");
+          return null;
+        }
+        if (data.price < 0 || data.stock < 0) {
+          setStatus("Price and stock must be non-negative.", "warn");
+          return null;
+        }
+        return data;
+      };
+
+      const loadProducts = async () => {
+        try {
+          const response = await fetch("week5-ex4-inventory.json");
+          if (!response.ok) {
+            throw new Error("Failed to load inventory");
+          }
+          const data = await response.json();
+          products = data.products || [];
+          renderTable(products);
+        } catch (error) {
+          setStatus("Error loading inventory data.", "bad");
+        }
+      };
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const data = validateForm();
+        if (!data) {
+          return;
+        }
+        if (products.some((product) => product.id === data.id)) {
+          setStatus("Product ID already exists.", "bad");
+          return;
+        }
+        products.push(data);
+        renderTable(filterProducts(activeFilter));
+        setStatus("Product added (200)", "good");
+        resetForm();
+      });
+
+      updateBtn.addEventListener("click", () => {
+        const data = validateForm();
+        if (!data) {
+          return;
+        }
+        const index = products.findIndex((product) => product.id === editingId);
+        if (index === -1) {
+          setStatus("Product not found (404)", "bad");
+          return;
+        }
+        products[index] = data;
+        renderTable(filterProducts(activeFilter));
+        setStatus("Product updated (200)", "good");
+        resetForm();
+      });
+
+      cancelBtn.addEventListener("click", () => {
+        resetForm();
+        setStatus("Edit canceled.", "warn");
+      });
+
+      const filterProducts = (category) => {
+        if (!category) {
+          return products;
+        }
+        const lower = category.toLowerCase();
+        return products.filter((product) =>
+          product.category.toLowerCase().includes(lower),
+        );
+      };
+
+      document.getElementById("searchBtn").addEventListener("click", () => {
+        activeFilter = searchInput.value.trim();
+        const filtered = filterProducts(activeFilter);
+        renderTable(filtered);
+        if (!filtered.length) {
+          setStatus("No products found for that category.", "warn");
+        }
+      });
+
+      document.getElementById("clearBtn").addEventListener("click", () => {
+        activeFilter = "";
+        searchInput.value = "";
+        renderTable(products);
+        setStatus("Search cleared.", "good");
+      });
+
+      tableBody.addEventListener("click", (event) => {
+        const button = event.target.closest("button");
+        if (!button) {
+          return;
+        }
+        const action = button.dataset.action;
+        const id = button.dataset.id;
+
+        if (action === "edit") {
+          const product = products.find((item) => item.id === id);
+          if (!product) {
+            setStatus("Product not found (404)", "bad");
+            return;
+          }
+          productId.value = product.id;
+          productName.value = product.name;
+          productCategory.value = product.category;
+          productPrice.value = product.price;
+          productStock.value = product.stock;
+          editingId = id;
+          addBtn.hidden = true;
+          updateBtn.hidden = false;
+          cancelBtn.hidden = false;
+          setStatus("Editing product...", "warn");
+        }
+
+        if (action === "delete") {
+          const index = products.findIndex((product) => product.id === id);
+          if (index === -1) {
+            setStatus("Product not found (404)", "bad");
+            return;
+          }
+          products.splice(index, 1);
+          renderTable(filterProducts(activeFilter));
+          setStatus("Product deleted (200)", "good");
+          if (editingId === id) {
+            resetForm();
+          }
+        }
+      });
+
+      loadProducts();
+    </script>
+  </body>
+</html>

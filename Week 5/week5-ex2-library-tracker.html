@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Exercise 2 - Library Book Tracker (XML)</title>
+    <style>
+      :root {
+        font-family: "Cambria", "Georgia", serif;
+        --bg: #f4f4f1;
+        --panel: #ffffff;
+        --ink: #24211d;
+        --muted: #6f6a63;
+        --accent: #8b4f1f;
+        --danger: #ba3a3a;
+        --warn: #b88a28;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: linear-gradient(120deg, #f9e8d0, #dde9f7);
+        display: grid;
+        place-items: center;
+        padding: 32px 16px;
+        color: var(--ink);
+      }
+
+      .panel {
+        width: min(980px, 100%);
+        background: var(--panel);
+        padding: 24px;
+        border-radius: 18px;
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12);
+      }
+
+      h1 {
+        margin: 0 0 8px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+
+      input,
+      select {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid #d3c6b8;
+        font-size: 1rem;
+        background: #fff;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      button {
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: none;
+        background: var(--accent);
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      button.secondary {
+        background: #6d4c2c;
+      }
+      button.ghost {
+        background: transparent;
+        color: var(--accent);
+        border: 1px solid var(--accent);
+      }
+      button.danger {
+        background: var(--danger);
+      }
+
+      .status {
+        margin-top: 12px;
+        font-weight: 600;
+      }
+
+      .status.good {
+        color: var(--accent);
+      }
+      .status.bad {
+        color: var(--danger);
+      }
+      .status.warn {
+        color: var(--warn);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+
+      th,
+      td {
+        text-align: left;
+        padding: 10px;
+        border-bottom: 1px solid #e6ddd2;
+      }
+
+      tr:hover {
+        background: #fcf6ee;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="panel">
+      <h1>Library Book Tracker (XML)</h1>
+      <p>Manage books stored in a local XML file.</p>
+
+      <form id="bookForm" novalidate>
+        <div class="grid">
+          <div>
+            <label for="bookId">Book ID</label>
+            <input id="bookId" required />
+          </div>
+          <div>
+            <label for="bookTitle">Title</label>
+            <input id="bookTitle" required />
+          </div>
+          <div>
+            <label for="bookAuthor">Author</label>
+            <input id="bookAuthor" required />
+          </div>
+          <div>
+            <label for="bookStatus">Availability</label>
+            <select id="bookStatus">
+              <option value="Available">Available</option>
+              <option value="Checked Out">Checked Out</option>
+            </select>
+          </div>
+        </div>
+        <div class="actions">
+          <button type="submit" id="addBtn">Add Book</button>
+          <button type="button" id="updateBtn" class="secondary" hidden>
+            Update Status
+          </button>
+          <button type="button" id="cancelBtn" class="ghost" hidden>
+            Cancel Edit
+          </button>
+        </div>
+      </form>
+
+      <div id="status" class="status"></div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="bookTable"></tbody>
+      </table>
+    </div>
+
+    <script>
+      const form = document.getElementById("bookForm");
+      const bookId = document.getElementById("bookId");
+      const bookTitle = document.getElementById("bookTitle");
+      const bookAuthor = document.getElementById("bookAuthor");
+      const bookStatus = document.getElementById("bookStatus");
+      const addBtn = document.getElementById("addBtn");
+      const updateBtn = document.getElementById("updateBtn");
+      const cancelBtn = document.getElementById("cancelBtn");
+      const statusEl = document.getElementById("status");
+      const tableBody = document.getElementById("bookTable");
+
+      let xmlDoc = null;
+      let editingId = null;
+
+      const setStatus = (message, tone) => {
+        statusEl.textContent = message;
+        statusEl.className = `status ${tone || ""}`.trim();
+      };
+
+      const resetForm = () => {
+        form.reset();
+        editingId = null;
+        addBtn.hidden = false;
+        updateBtn.hidden = true;
+        cancelBtn.hidden = true;
+      };
+
+      const loadBooks = () => {
+        const request = new XMLHttpRequest();
+        request.open("GET", "week5-ex2-books.xml", true);
+        request.onload = () => {
+          if (request.status !== 200) {
+            setStatus(`Failed to load books (${request.status})`, "bad");
+            return;
+          }
+          if (!request.responseXML || !request.responseXML.documentElement) {
+            setStatus("XML is empty or malformed.", "bad");
+            return;
+          }
+          xmlDoc = request.responseXML;
+          renderTable();
+          setStatus("Books loaded successfully (200)", "good");
+        };
+        request.onerror = () =>
+          setStatus("Network error while loading XML.", "bad");
+        request.send();
+      };
+
+      const getBooks = () => Array.from(xmlDoc.getElementsByTagName("book"));
+
+      const findBookById = (id) =>
+        getBooks().find(
+          (book) => book.getElementsByTagName("id")[0]?.textContent === id,
+        );
+
+      const renderTable = () => {
+        if (!xmlDoc) {
+          return;
+        }
+        tableBody.innerHTML = "";
+        const books = getBooks();
+        if (books.length === 0) {
+          setStatus("No book records found.", "warn");
+          return;
+        }
+
+        books.forEach((book) => {
+          const id = book.getElementsByTagName("id")[0]?.textContent || "";
+          const title =
+            book.getElementsByTagName("title")[0]?.textContent || "";
+          const author =
+            book.getElementsByTagName("author")[0]?.textContent || "";
+          const status =
+            book.getElementsByTagName("status")[0]?.textContent || "";
+
+          const row = document.createElement("tr");
+          row.innerHTML = `
+          <td>${id}</td>
+          <td>${title}</td>
+          <td>${author}</td>
+          <td>${status}</td>
+          <td>
+            <button class="ghost" data-action="edit" data-id="${id}">Edit</button>
+            <button class="danger" data-action="delete" data-id="${id}">Delete</button>
+          </td>
+        `;
+          tableBody.appendChild(row);
+        });
+      };
+
+      const readFormData = () => ({
+        id: bookId.value.trim(),
+        title: bookTitle.value.trim(),
+        author: bookAuthor.value.trim(),
+        status: bookStatus.value,
+      });
+
+      const validateForm = () => {
+        const data = readFormData();
+        if (!data.id || !data.title || !data.author) {
+          setStatus("All fields are required.", "warn");
+          return null;
+        }
+        return data;
+      };
+
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const data = validateForm();
+        if (!data) {
+          return;
+        }
+        if (findBookById(data.id)) {
+          setStatus("Book ID already exists.", "bad");
+          return;
+        }
+
+        const bookNode = xmlDoc.createElement("book");
+        ["id", "title", "author", "status"].forEach((tag) => {
+          const node = xmlDoc.createElement(tag);
+          node.textContent = data[tag];
+          bookNode.appendChild(node);
+        });
+        xmlDoc.documentElement.appendChild(bookNode);
+        renderTable();
+        setStatus("Book added (200)", "good");
+        resetForm();
+      });
+
+      updateBtn.addEventListener("click", () => {
+        const data = validateForm();
+        if (!data) {
+          return;
+        }
+        const book = findBookById(editingId);
+        if (!book) {
+          setStatus("Book not found (404)", "bad");
+          return;
+        }
+
+        book.getElementsByTagName("status")[0].textContent = data.status;
+        renderTable();
+        setStatus("Book updated (200)", "good");
+        resetForm();
+      });
+
+      cancelBtn.addEventListener("click", () => {
+        resetForm();
+        setStatus("Edit canceled.", "warn");
+      });
+
+      tableBody.addEventListener("click", (event) => {
+        const button = event.target.closest("button");
+        if (!button) {
+          return;
+        }
+        const action = button.dataset.action;
+        const id = button.dataset.id;
+
+        if (action === "edit") {
+          const book = findBookById(id);
+          if (!book) {
+            setStatus("Book not found (404)", "bad");
+            return;
+          }
+          bookId.value = id;
+          bookTitle.value =
+            book.getElementsByTagName("title")[0]?.textContent || "";
+          bookAuthor.value =
+            book.getElementsByTagName("author")[0]?.textContent || "";
+          bookStatus.value =
+            book.getElementsByTagName("status")[0]?.textContent || "Available";
+          editingId = id;
+          addBtn.hidden = true;
+          updateBtn.hidden = false;
+          cancelBtn.hidden = false;
+          setStatus("Editing book status...", "warn");
+        }
+
+        if (action === "delete") {
+          const book = findBookById(id);
+          if (!book) {
+            setStatus("Book not found (404)", "bad");
+            return;
+          }
+          xmlDoc.documentElement.removeChild(book);
+          renderTable();
+          setStatus("Book deleted (200)", "good");
+          if (editingId === id) {
+            resetForm();
+          }
+        }
+      });
+
+      loadBooks();
+    </script>
+  </body>
+</html>

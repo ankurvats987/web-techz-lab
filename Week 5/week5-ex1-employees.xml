@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<employees>
+  <employee>
+    <id>E101</id>
+    <name>Rachel Green</name>
+    <department>HR</department>
+    <salary>52000</salary>
+  </employee>
+  <employee>
+    <id>E102</id>
+    <name>Monica Geller</name>
+    <department>Finance</department>
+    <salary>64000</salary>
+  </employee>
+  <employee>
+    <id>E103</id>
+    <name>Chandler Bing</name>
+    <department>Sales</department>
+    <salary>58000</salary>
+  </employee>
+</employees>
