@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const { MongoClient, ObjectId } = require("mongodb");
@@ -7,8 +8,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
-const MONGO_URI =
-  "mongodb+srv://ankur23bce7555_db_user:ankur123@labcluster.5gvihuq.mongodb.net/?appName=LabCluster";
+const MONGO_URI = process.env.MONGODB_URI;
 const DB_NAME = "week7_lab";
 
 let db;
