@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Notes Manager</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Segoe UI", sans-serif;
+        background: #f0f2f5;
+        padding: 30px;
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 24px;
+        color: #333;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+
+      /* Form */
+      .form-card {
+        background: #fff;
+        border-radius: 10px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 28px;
+      }
+      .form-card h2 {
+        margin-bottom: 16px;
+        color: #444;
+      }
+      .form-row {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+      }
+      .form-row input,
+      .form-row textarea {
+        flex: 1;
+        padding: 10px 14px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 14px;
+        min-width: 200px;
+      }
+      .form-row textarea {
+        min-height: 70px;
+        resize: vertical;
+      }
+      .btn {
+        padding: 10px 22px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        color: #fff;
+        transition: background 0.2s;
+      }
+      .btn-primary {
+        background: #4361ee;
+      }
+      .btn-primary:hover {
+        background: #3a56d4;
+      }
+      .btn-success {
+        background: #2ec4b6;
+      }
+      .btn-success:hover {
+        background: #25a99d;
+      }
+      .btn-danger {
+        background: #e63946;
+      }
+      .btn-danger:hover {
+        background: #cf2f3c;
+      }
+      .btn-cancel {
+        background: #888;
+      }
+      .btn-cancel:hover {
+        background: #666;
+      }
+
+      /* Notes list */
+      .notes-list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .note-card {
+        background: #fff;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        position: relative;
+      }
+      .note-card h3 {
+        color: #4361ee;
+        margin-bottom: 4px;
+      }
+      .note-card .subject {
+        font-size: 13px;
+        color: #777;
+        margin-bottom: 8px;
+      }
+      .note-card .desc {
+        color: #444;
+        line-height: 1.5;
+        margin-bottom: 10px;
+      }
+      .note-card .date {
+        font-size: 12px;
+        color: #aaa;
+      }
+      .note-actions {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        display: flex;
+        gap: 8px;
+      }
+      .note-actions .btn {
+        padding: 6px 14px;
+        font-size: 13px;
+      }
+
+      /* Edit form inside card */
+      .edit-form {
+        margin-top: 12px;
+      }
+      .edit-form input,
+      .edit-form textarea {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 14px;
+        margin-bottom: 8px;
+      }
+      .edit-form textarea {
+        min-height: 60px;
+        resize: vertical;
+      }
+      .edit-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .empty-msg {
+        text-align: center;
+        color: #999;
+        padding: 40px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>📝 Student Notes Manager</h1>
+
+      <!-- Add Note Form -->
+      <div class="form-card">
+        <h2>Add New Note</h2>
+        <div class="form-row">
+          <input type="text" id="title" placeholder="Title" />
+          <input type="text" id="subject" placeholder="Subject" />
+        </div>
+        <div class="form-row">
+          <textarea id="description" placeholder="Description"></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="addNote()">Add Note</button>
+      </div>
+
+      <!-- Notes Display -->
+      <h2 style="margin-bottom: 14px; color: #444">All Notes</h2>
+      <div id="notesList" class="notes-list">
+        <p class="empty-msg">Loading notes…</p>
+      </div>
+    </div>
+
+    <script>
+      const API = "http://localhost:3000";
+
+      // Fetch and render all notes
+      async function loadNotes() {
+        try {
+          const res = await fetch(`${API}/notes`);
+          const notes = await res.json();
+          const container = document.getElementById("notesList");
+
+          if (notes.length === 0) {
+            container.innerHTML =
+              '<p class="empty-msg">No notes yet. Add one above!</p>';
+            return;
+          }
+
+          container.innerHTML = notes
+            .map(
+              (n) => `
+        <div class="note-card" id="note-${n._id}">
+          <div class="note-actions">
+            <button class="btn btn-success" onclick="showEdit('${n._id}')">Edit</button>
+            <button class="btn btn-danger" onclick="deleteNote('${n._id}')">Delete</button>
+          </div>
+          <h3>${escapeHtml(n.title)}</h3>
+          <div class="subject">${escapeHtml(n.subject)}</div>
+          <div class="desc">${escapeHtml(n.description)}</div>
+          <div class="date">Created: ${n.created_date || "N/A"}</div>
+          <div class="edit-form" id="edit-${n._id}" style="display:none;">
+            <input id="edit-title-${n._id}" value="${escapeAttr(n.title)}" placeholder="Title" />
+            <input id="edit-subject-${n._id}" value="${escapeAttr(n.subject)}" placeholder="Subject" />
+            <textarea id="edit-desc-${n._id}" placeholder="Description">${escapeHtml(n.description)}</textarea>
+            <div class="edit-actions">
+              <button class="btn btn-success" onclick="updateNote('${n._id}')">Save</button>
+              <button class="btn btn-cancel" onclick="hideEdit('${n._id}')">Cancel</button>
+            </div>
+          </div>
+        </div>`,
+            )
+            .join("");
+        } catch (err) {
+          document.getElementById("notesList").innerHTML =
+            '<p class="empty-msg">Error loading notes. Is the server running?</p>';
+        }
+      }
+
+      // Add note
+      async function addNote() {
+        const title = document.getElementById("title").value.trim();
+        const subject = document.getElementById("subject").value.trim();
+        const description = document.getElementById("description").value.trim();
+        if (!title || !subject || !description)
+          return alert("All fields are required");
+
+        await fetch(`${API}/notes`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title, subject, description }),
+        });
+        document.getElementById("title").value = "";
+        document.getElementById("subject").value = "";
+        document.getElementById("description").value = "";
+        loadNotes();
+      }
+
+      // Show inline edit
+      function showEdit(id) {
+        document.getElementById(`edit-${id}`).style.display = "block";
+      }
+      function hideEdit(id) {
+        document.getElementById(`edit-${id}`).style.display = "none";
+      }
+
+      // Update note
+      async function updateNote(id) {
+        const title = document.getElementById(`edit-title-${id}`).value.trim();
+        const subject = document
+          .getElementById(`edit-subject-${id}`)
+          .value.trim();
+        const description = document
+          .getElementById(`edit-desc-${id}`)
+          .value.trim();
+
+        await fetch(`${API}/notes/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title, subject, description }),
+        });
+        loadNotes();
+      }
+
+      // Delete note
+      async function deleteNote(id) {
+        if (!confirm("Delete this note?")) return;
+        await fetch(`${API}/notes/${id}`, { method: "DELETE" });
+        loadNotes();
+      }
+
+      // Helpers
+      function escapeHtml(str) {
+        const div = document.createElement("div");
+        div.textContent = str || "";
+        return div.innerHTML;
+      }
+      function escapeAttr(str) {
+        return (str || "")
+          .replace(/"/g, "&quot;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+      }
+
+      // Initial load
+      loadNotes();
+    </script>
+  </body>
+</html>
