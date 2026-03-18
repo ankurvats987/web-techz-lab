@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Exercise 2 - Student Object</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", Arial, sans-serif;
+        background: linear-gradient(135deg, #f5f3ff, #eef2ff);
+        color: #1f2937;
+      }
+
+      .container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 1.5rem;
+      }
+
+      .card {
+        background: #ffffff;
+        border: 1px solid #ddd6fe;
+        border-radius: 16px;
+        padding: 1.25rem;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+      }
+
+      h1 {
+        margin-top: 0;
+      }
+
+      form {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.8rem;
+      }
+
+      .full {
+        grid-column: 1 / -1;
+      }
+
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.35rem;
+      }
+
+      input {
+        width: 100%;
+        border: 1px solid #c4b5fd;
+        border-radius: 10px;
+        padding: 0.65rem;
+        font-size: 0.95rem;
+      }
+
+      button {
+        border: none;
+        background: #7c3aed;
+        color: white;
+        border-radius: 10px;
+        padding: 0.7rem 1rem;
+        font-size: 0.95rem;
+        cursor: pointer;
+      }
+
+      .results {
+        margin-top: 1rem;
+        display: none;
+        gap: 1rem;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      pre {
+        background: #faf5ff;
+        border: 1px solid #e9d5ff;
+        border-radius: 12px;
+        padding: 1rem;
+        overflow: auto;
+        margin: 0;
+      }
+
+      @media (max-width: 720px) {
+        form,
+        .results {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <section class="card">
+        <h1>Exercise 2: Student Object Builder</h1>
+        <p>
+          Create a student object, view destructured values, and generate an
+          updated object with grade.
+        </p>
+
+        <form id="studentForm">
+          <div>
+            <label for="id">Student ID</label>
+            <input id="id" type="number" value="101" required />
+          </div>
+          <div>
+            <label for="name">Student Name</label>
+            <input id="name" type="text" value="Priya" required />
+          </div>
+          <div>
+            <label for="department">Department</label>
+            <input id="department" type="text" value="CSE" required />
+          </div>
+          <div>
+            <label for="marks">Marks</label>
+            <input
+              id="marks"
+              type="number"
+              min="0"
+              max="100"
+              value="92"
+              required
+            />
+          </div>
+          <div class="full">
+            <button type="submit">Create Object</button>
+          </div>
+        </form>
+
+        <div id="results" class="results">
+          <div>
+            <h3>Destructured Values</h3>
+            <pre id="destructuredOutput"></pre>
+          </div>
+          <div>
+            <h3>Updated Student Object</h3>
+            <pre id="updatedOutput"></pre>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="exercise2-student-object.js"></script>
+    <script>
+      const studentForm = document.getElementById("studentForm");
+      const results = document.getElementById("results");
+      const destructuredOutput = document.getElementById("destructuredOutput");
+      const updatedOutput = document.getElementById("updatedOutput");
+
+      studentForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        const id = Number(document.getElementById("id").value);
+        const name = document.getElementById("name").value.trim();
+        const department = document.getElementById("department").value.trim();
+        const marks = Number(document.getElementById("marks").value);
+
+        if (!name || !department) {
+          alert("Please fill all fields.");
+          return;
+        }
+
+        const student = createStudentObject(id, name, department, marks);
+        const {
+          id: sid,
+          name: sname,
+          department: dept,
+          marks: smarks,
+        } = destructureStudent(student);
+        const updatedStudent = createUpdatedStudent(student);
+
+        destructuredOutput.textContent = `${sid} ${sname} ${dept} ${smarks}`;
+        updatedOutput.textContent = JSON.stringify(updatedStudent, null, 2);
+
+        results.style.display = "grid";
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Exercise 3 - Course Enrollment</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", Arial, sans-serif;
+        background: linear-gradient(135deg, #ecfeff, #f0f9ff);
+        color: #0f172a;
+      }
+
+      .container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 1.5rem;
+      }
+
+      .card {
+        background: #ffffff;
+        border: 1px solid #bae6fd;
+        border-radius: 16px;
+        padding: 1.25rem;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+      }
+
+      h1 {
+        margin-top: 0;
+      }
+
+      .controls {
+        margin: 0.75rem 0 1rem;
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+      }
+
+      .controls input {
+        width: 90px;
+      }
+
+      form {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 0.8rem;
+      }
+
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.35rem;
+      }
+
+      input {
+        width: 100%;
+        border: 1px solid #7dd3fc;
+        border-radius: 10px;
+        padding: 0.65rem;
+        font-size: 0.95rem;
+      }
+
+      button {
+        border: none;
+        border-radius: 10px;
+        background: #0284c7;
+        color: white;
+        cursor: pointer;
+        padding: 0.7rem 1rem;
+      }
+
+      .status,
+      .courses {
+        margin-top: 1rem;
+        border-radius: 12px;
+        padding: 1rem;
+      }
+
+      .status {
+        background: #f0f9ff;
+        border: 1px solid #bae6fd;
+      }
+
+      .courses {
+        background: #f8fafc;
+        border: 1px solid #cbd5e1;
+      }
+
+      ul {
+        margin: 0.5rem 0 0;
+        padding-left: 1.2rem;
+      }
+
+      @media (max-width: 760px) {
+        form {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <section class="card">
+        <h1>Exercise 3: Course Enrollment System</h1>
+        <p>
+          Create a course and enroll using promises with seat availability
+          checks.
+        </p>
+
+        <form id="enrollmentForm">
+          <div>
+            <label for="courseName">Course Name</label>
+            <input
+              id="courseName"
+              type="text"
+              value="Web Technologies"
+              required
+            />
+          </div>
+          <div>
+            <label for="instructor">Instructor</label>
+            <input id="instructor" type="text" value="Dr. Kumar" required />
+          </div>
+          <div style="display: flex; align-items: end">
+            <button type="submit">Enroll</button>
+          </div>
+        </form>
+
+        <div id="status" class="status">Ready for enrollment.</div>
+        <div class="courses">
+          <strong>Enrolled Courses</strong>
+          <ul id="courseList"></ul>
+        </div>
+      </section>
+    </main>
+
+    <script src="exercise3-course-enrollment.js"></script>
+    <script>
+      const statusBox = document.getElementById("status");
+      const courseListElement = document.getElementById("courseList");
+      const setSeatsButton = document.getElementById("setSeatsButton");
+      const enrollmentForm = document.getElementById("enrollmentForm");
+
+      const renderCourseList = () => {
+        const state = getEnrollmentState();
+        courseListElement.innerHTML = "";
+
+        if (state.courseList.length === 0) {
+          const item = document.createElement("li");
+          item.textContent = "No enrollments yet.";
+          courseListElement.appendChild(item);
+
+          return;
+        }
+
+        state.courseList.forEach((course) => {
+          const item = document.createElement("li");
+          item.textContent = `${course.courseName} - ${course.instructor}`;
+          courseListElement.appendChild(item);
+        });
+      };
+
+      const updateStatus = (message, isError = false) => {
+        statusBox.textContent = message;
+        statusBox.style.color = isError ? "#b91c1c" : "#0f172a";
+      };
+
+      enrollmentForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const courseName = document.getElementById("courseName").value.trim();
+        const instructor = document.getElementById("instructor").value.trim();
+
+        if (!courseName || !instructor) {
+          updateStatus("Please provide both course name and instructor.", true);
+          return;
+        }
+
+        updateStatus("Checking seat availability...");
+        const result = await registerCourse(courseName, instructor);
+
+        const state = getEnrollmentState();
+
+        if (result.success) {
+          updateStatus(
+            `${result.course.displayCourse()} | ${result.message}. Remaining seats: ${state.seatsAvailable}`,
+          );
+        } else {
+          updateStatus(
+            `Course Enrollment Failed: ${result.message}. Remaining seats: ${state.seatsAvailable}`,
+            true,
+          );
+        }
+
+        renderCourseList();
+      });
+
+      renderCourseList();
+    </script>
+  </body>
+</html>
