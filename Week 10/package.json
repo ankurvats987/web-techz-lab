@@ -1,0 +1,28 @@
+{
+  "name": "week-10-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:ex1": "npm run dev -w exercise-1-form-validation",
+    "dev:ex2": "npm run dev -w exercise-2-dynamic-list",
+    "dev:ex3": "npm run dev -w exercise-3-api-fetch",
+    "build": "npm run build -ws",
+    "build:ex1": "npm run build -w exercise-1-form-validation",
+    "build:ex2": "npm run build -w exercise-2-dynamic-list",
+    "build:ex3": "npm run build -w exercise-3-api-fetch",
+    "preview:ex1": "npm run preview -w exercise-1-form-validation",
+    "preview:ex2": "npm run preview -w exercise-2-dynamic-list",
+    "preview:ex3": "npm run preview -w exercise-3-api-fetch"
+  },
+  "dependencies": {
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "vite": "^8.0.3"
+  }
+}
