@@ -1,0 +1,9 @@
+{
+  "name": "exercise-1-http-server",
+  "version": "1.0.0",
+  "description": "Simple Node.js HTTP server without external frameworks",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "exercise-2-file-operations",
+  "version": "1.0.0",
+  "description": "Node.js file handling operations with callbacks",
+  "main": "fileOperations.js",
+  "scripts": {
+    "start": "node fileOperations.js"
+  }
+}

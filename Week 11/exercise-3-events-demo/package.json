@@ -1,0 +1,9 @@
+{
+  "name": "exercise-3-events-demo",
+  "version": "1.0.0",
+  "description": "Node.js EventEmitter custom events demo",
+  "main": "eventsDemo.js",
+  "scripts": {
+    "start": "node eventsDemo.js"
+  }
+}
