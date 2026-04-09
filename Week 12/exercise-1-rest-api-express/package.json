@@ -1,0 +1,12 @@
+{
+  "name": "exercise-1-rest-api-express",
+  "version": "1.0.0",
+  "description": "Week 12 Exercise 1 - RESTful API with Express",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

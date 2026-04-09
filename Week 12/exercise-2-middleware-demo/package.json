@@ -1,0 +1,12 @@
+{
+  "name": "exercise-2-middleware-demo",
+  "version": "1.0.0",
+  "description": "Week 12 Exercise 2 - Express middleware demonstration",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

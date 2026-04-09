@@ -1,0 +1,14 @@
+{
+  "name": "exercise-3-mongodb-crud",
+  "version": "1.0.0",
+  "description": "Week 12 Exercise 3 - MongoDB CRUD with Express and Mongoose",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mongoose": "^8.6.1"
+  }
+}
